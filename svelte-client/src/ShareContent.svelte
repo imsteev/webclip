@@ -25,26 +25,38 @@ section {
 </style>
 
 <script lang="ts">
+import { onMount } from "svelte";
+
 import { copyToClipboard, saveToLocalStorage } from "./utils/browser";
 
-type Shareable = {
-  updatedAt: Date;
+type SharedClip = {
   content: string;
+  updatedAt?: Date;
   title?: string;
 };
 let inputContent: string = "";
-let shared: Shareable[] = [];
+
+onMount(() => {
+  fetch("http://localhost:8000/clips")
+    .then((resp) => resp.json())
+    .then((sharedContent) => (shared = sharedContent));
+});
+
+let shared: SharedClip[] = [];
 
 const handleClick = () => {
   // make sure shared content actually has stuff in it
   if (inputContent.trim()) {
-    shared = [
-      ...shared,
-      {
-        updatedAt: new Date(),
+    fetch("http://localhost:8000/clips", {
+      method: "POST",
+      body: JSON.stringify({
         content: inputContent,
-      },
-    ];
+      }),
+    })
+      .then((resp) => resp.json())
+      .then((createdClip) => {
+        shared = [...shared, createdClip];
+      });
   }
   inputContent = "";
 };
@@ -62,10 +74,6 @@ const handleEnter = (e) => {
 $: {
   if (shared.length) {
     saveToLocalStorage("__WEBCLIP__SHARED_CONTENT", shared);
-    // @ts-ignore asdfsdfd
-    navigator.bluetooth
-      .requestDevice({ filters: [{ services: ["battery_service"] }] })
-      .then(console.log);
   }
 }
 </script>
@@ -91,7 +99,7 @@ $: {
             <span
               class="humble-link"
               on:click="{() => copyToClipboard(content)}">Copy</span>
-            <i>({updatedAt.toLocaleTimeString()})</i>
+            <i>({new Date(updatedAt)?.toLocaleTimeString() ?? ""})</i>
           </div>
         </div>
       </li>

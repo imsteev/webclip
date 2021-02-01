@@ -1,7 +1,7 @@
 import { Router } from "https://deno.land/x/oak/mod.ts";
-import { getShared, createShared } from "./controller.ts";
+import { getClips, createClip } from "./controller.ts";
 
 const router = new Router();
-router.get("/shared_content", getShared).post("/shared_content", createShared);
+router.get("/clips", getClips).post("/clips", createClip);
 
 export default router;
