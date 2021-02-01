@@ -25,6 +25,8 @@ section {
 </style>
 
 <script lang="ts">
+import { copyToClipboard, saveToLocalStorage } from "./utils/browser";
+
 type Shareable = {
   updatedAt: Date;
   content: string;
@@ -57,8 +59,15 @@ const handleEnter = (e) => {
   }
 };
 
-const copyToClipboard = (content: string): Promise<void> =>
-  navigator.clipboard.writeText(content);
+$: {
+  if (shared.length) {
+    saveToLocalStorage("__WEBCLIP__SHARED_CONTENT", shared);
+    // @ts-ignore asdfsdfd
+    navigator.bluetooth
+      .requestDevice({ filters: [{ services: ["battery_service"] }] })
+      .then(console.log);
+  }
+}
 </script>
 
 <div class="controls" on:keydown="{handleEnter}">
